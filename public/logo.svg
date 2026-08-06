@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 240" width="100%" height="100%">
+  <defs>
+    <!-- Premium Metallic Gold Gradients -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B88A3B" />
+      <stop offset="25%" stop-color="#E2C175" />
+      <stop offset="50%" stop-color="#FDF0A6" />
+      <stop offset="75%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#8F6222" />
+    </linearGradient>
+
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FDF0A6" />
+      <stop offset="100%" stop-color="#C59B27" />
+    </linearGradient>
+
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <g id="kofado-logo">
+    <!-- Emblem (Right Side) -->
+    <g transform="translate(670, 20)">
+      <!-- Outer Golden Ribbon Frame -->
+      <path d="M 50 10 L 140 10 C 175 10 190 25 190 60 L 190 140 C 190 175 175 190 140 190 L 50 190 C 20 190 10 175 10 140 L 10 60 C 10 25 25 10 50 10 Z" 
+            fill="none" 
+            stroke="url(#goldGradient)" 
+            stroke-width="26" 
+            stroke-linejoin="round"
+            stroke-linecap="round" />
+      
+      <!-- Inner Diagonal K-Fold Ribbon -->
+      <path d="M 180 20 L 75 110 L 180 180 M 110 110 L 175 110" 
+            fill="none" 
+            stroke="url(#goldGradient)" 
+            stroke-width="24" 
+            stroke-linejoin="round"
+            stroke-linecap="round" />
+    </g>
+
+    <!-- Vertical Separator Line -->
+    <line x1="630" y1="30" x2="630" y2="190" stroke="url(#goldGradient)" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Text Block (Left Side) -->
+    <!-- Arabic Main Title: كوفادو -->
+    <g transform="translate(60, 125)">
+      <!-- KOFADO in Arabic Calligraphic Geometry -->
+      <text x="540" y="0" 
+            font-family="'Tajawal', 'Cairo', 'Amiri', 'Traditional Arabic', sans-serif" 
+            font-size="115" 
+            font-weight="900" 
+            text-anchor="end" 
+            fill="#0D1527" 
+            letter-spacing="-1">كوفادو</text>
+      
+      <!-- Gold Accent Tip on Letter -->
+      <polygon points="500,-105 535,-105 515,-75" fill="url(#goldAccent)" />
+    </g>
+
+    <!-- Subtitle: نظام ذكي لإدارة أعمال الخياطة والأقمشة -->
+    <text x="600" y="195" 
+          font-family="'Tajawal', 'Cairo', 'Amiri', sans-serif" 
+          font-size="34" 
+          font-weight="700" 
+          text-anchor="end" 
+          fill="#9A702E">نظام ذكي لإدارة أعمال الخياطة والأقمشة</text>
+  </g>
+</svg>
