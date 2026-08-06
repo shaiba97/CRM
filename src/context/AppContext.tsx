@@ -20,6 +20,7 @@ import {
   LineItem,
   AuditLog,
   Expense,
+  TailorShopTenant,
 } from '../types';
 import {
   INITIAL_BRANCHES,
@@ -39,6 +40,7 @@ import {
   INITIAL_USER_TASKS,
   INITIAL_AUDIT_LOGS,
   INITIAL_EXPENSES,
+  INITIAL_TENANTS,
 } from '../data/mockData';
 
 interface Toast {
@@ -58,6 +60,16 @@ interface AppContextType {
   setUseEasternNumerals: (useAr: boolean) => void;
   theme: 'dark' | 'light';
   setTheme: (theme: 'dark' | 'light') => void;
+  // Multi-Tenant CRM State
+  tenants: TailorShopTenant[];
+  activeTenantId: string;
+  activeTenant: TailorShopTenant;
+  switchTenant: (tenantId: string) => void;
+  addTenant: (tenantData: Omit<TailorShopTenant, 'id' | 'joinedDate'>) => TailorShopTenant;
+  updateTenant: (tenantId: string, updates: Partial<TailorShopTenant>) => void;
+  isNewTenantModalOpen: boolean;
+  setIsNewTenantModalOpen: (open: boolean) => void;
+
   activeBranchId: string;
   setActiveBranchId: (id: string) => void;
   activeRole: Role;
@@ -165,13 +177,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   // Entities
-  const [branches] = useState<Branch[]>(INITIAL_BRANCHES);
+  const [branches, setBranches] = useState<Branch[]>(INITIAL_BRANCHES);
   const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
   const [emailLogs, setEmailLogs] = useState<EmailTrackingLog[]>(INITIAL_EMAIL_LOGS);
   const [measurements, setMeasurements] = useState<MeasurementProfile[]>(INITIAL_MEASUREMENTS);
   const [fabricRolls, setFabricRolls] = useState<FabricRoll[]>(INITIAL_FABRIC_ROLLS);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [suppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
+  const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
   const [tailoringOrders, setTailoringOrders] = useState<TailoringOrder[]>(INITIAL_ORDERS);
   const [productionTasks, setProductionTasks] = useState<ProductionTask[]>(INITIAL_PRODUCTION_TASKS);
   const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
@@ -180,11 +192,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [userTasks, setUserTasks] = useState<UserTask[]>(INITIAL_USER_TASKS);
-  const [auditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
 
   // POS Cart
   const [posCart, setPosCart] = useState<LineItem[]>([]);
+
+  // Load Live Data from Neon PostgreSQL Database
+  useEffect(() => {
+    async function loadNeonData() {
+      try {
+        const res = await fetch('/api/db/data');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.tenants && data.tenants.length > 0) setTenants(data.tenants);
+          if (data.branches) setBranches(data.branches);
+          if (data.customers) setCustomers(data.customers);
+          if (data.emailLogs) setEmailLogs(data.emailLogs);
+          if (data.measurements) setMeasurements(data.measurements);
+          if (data.fabricRolls) setFabricRolls(data.fabricRolls);
+          if (data.products) setProducts(data.products);
+          if (data.suppliers) setSuppliers(data.suppliers);
+          if (data.orders) setTailoringOrders(data.orders);
+          if (data.productionTasks) setProductionTasks(data.productionTasks);
+          if (data.invoices) setInvoices(data.invoices);
+          if (data.payments) setPayments(data.payments);
+          if (data.purchaseOrders) setPurchaseOrders(data.purchaseOrders);
+          if (data.employees) setEmployees(data.employees);
+          if (data.notifications) setNotifications(data.notifications);
+          if (data.userTasks) setUserTasks(data.userTasks);
+          if (data.expenses) setExpenses(data.expenses);
+        }
+      } catch (err) {
+        console.error('Failed to load data from Neon PostgreSQL database:', err);
+      }
+    }
+    loadNeonData();
+  }, []);
 
   useEffect(() => {
     document.documentElement.dir = dir;
@@ -206,6 +250,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Multi-Tenant State
+  const [tenants, setTenants] = useState<TailorShopTenant[]>(INITIAL_TENANTS);
+  const [activeTenantId, setActiveTenantId] = useState<string>('tenant_kofado_main');
+  const [isNewTenantModalOpen, setIsNewTenantModalOpen] = useState<boolean>(false);
+
+  const activeTenant = tenants.find((t) => t.id === activeTenantId) || tenants[0];
+
+  const switchTenant = (tenantId: string) => {
+    const target = tenants.find((t) => t.id === tenantId);
+    if (target) {
+      setActiveTenantId(tenantId);
+      showToast(
+        language === 'ar'
+          ? `تم الانتقال بنجاح إلى مؤسسة: ${target.nameAr}`
+          : `Switched to tailor shop: ${target.nameEn}`,
+        'info'
+      );
+    }
+  };
+
+  const addTenant = (tenantData: Omit<TailorShopTenant, 'id' | 'joinedDate'>): TailorShopTenant => {
+    const newTenant: TailorShopTenant = {
+      ...tenantData,
+      id: generateUniqueId('tenant_'),
+      joinedDate: new Date().toISOString().split('T')[0],
+    };
+    setTenants((prev) => [newTenant, ...prev]);
+    setActiveTenantId(newTenant.id);
+
+    fetch('/api/db/tenants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newTenant),
+    }).catch((e) => console.error('Failed to save tenant to Neon PostgreSQL:', e));
+
+    showToast(
+      language === 'ar'
+        ? `تم تسجيل دار الخياطة الجديدة وحفظها في قاعدة البيانات: ${newTenant.nameAr}`
+        : `Registered new tailor shop in database: ${newTenant.nameEn}`
+    );
+    return newTenant;
+  };
+
+  const updateTenant = (tenantId: string, updates: Partial<TailorShopTenant>) => {
+    setTenants((prev) => prev.map((t) => (t.id === tenantId ? { ...t, ...updates } : t)));
+
+    fetch(`/api/db/tenants/${tenantId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    }).catch((e) => console.error('Failed to update tenant in Neon PostgreSQL:', e));
+
+    showToast(language === 'ar' ? 'تم تحديث إعدادات دار الخياطة في قاعدة البيانات' : 'Tailor shop updated in database');
+  };
+
   // Convert Western numerals to Arabic-Indic numerals if numeralStyle === 'ar'
   const formatNumber = (val?: number | string | null): string => {
     if (val === undefined || val === null) return '';
@@ -216,12 +315,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const formatCurrency = (amount?: number | null): string => {
+    const sym = activeTenant?.currencySymbol || 'ج.س';
+    const code = activeTenant?.currencyCode || 'SDG';
     if (amount === undefined || amount === null || typeof amount !== 'number' || isNaN(amount)) {
       const zeroStr = formatNumber(0);
-      return language === 'ar' ? `${zeroStr} ج.س` : `${zeroStr} SDG`;
+      return language === 'ar' ? `${zeroStr} ${sym}` : `${zeroStr} ${code}`;
     }
     const formattedVal = formatNumber(amount.toLocaleString());
-    return language === 'ar' ? `${formattedVal} ج.س` : `${formattedVal} SDG`;
+    return language === 'ar' ? `${formattedVal} ${sym}` : `${formattedVal} ${code}`;
   };
 
   const addCustomer = (custData: Omit<Customer, 'id' | 'createdAt'>): Customer => {
@@ -232,7 +333,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString().split('T')[0],
     };
     setCustomers((prev) => [newCust, ...prev]);
-    showToast(language === 'ar' ? 'تم إضافة العميل بنجاح' : 'Customer added successfully');
+
+    fetch('/api/db/customers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...newCust, tenantId: activeTenantId }),
+    }).catch((e) => console.error('Failed to save customer to Neon PostgreSQL:', e));
+
+    showToast(language === 'ar' ? 'تم إضافة العميل بنجاح في قاعدة البيانات' : 'Customer saved to database');
     return newCust;
   };
 
@@ -240,6 +348,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCustomers((prev) =>
       prev.map((c) => (c.id === id ? { ...c, ...updated } : c))
     );
+
+    fetch(`/api/db/customers/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated),
+    }).catch((e) => console.error('Failed to update customer in Neon PostgreSQL:', e));
+
     showToast(language === 'ar' ? 'تم تحديث بيانات العميل' : 'Customer updated');
   };
 
@@ -344,17 +459,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const saveMeasurement = (mData: Omit<MeasurementProfile, 'id' | 'updatedAt'>) => {
     const existing = measurements.find((m) => m.customerId === mData.customerId && m.garmentType === mData.garmentType);
     const updatedAt = new Date().toISOString().split('T')[0];
+    const id = existing ? existing.id : generateUniqueId('m_');
+
+    const newM: MeasurementProfile = {
+      ...mData,
+      id,
+      updatedAt,
+    };
 
     if (existing) {
       setMeasurements((prev) =>
         prev.map((m) => (m.id === existing.id ? { ...m, ...mData, updatedAt } : m))
       );
     } else {
-      const newM: MeasurementProfile = {
-        ...mData,
-        id: generateUniqueId('m_'),
-        updatedAt,
-      };
       setMeasurements((prev) => [newM, ...prev]);
     }
 
@@ -363,7 +480,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       prev.map((c) => (c.id === mData.customerId ? { ...c, measurementTaken: true } : c))
     );
 
-    showToast(language === 'ar' ? 'تم حفظ ملف القياسات المتقنة' : 'Measurement profile saved');
+    fetch('/api/db/measurements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...newM, tenantId: activeTenantId }),
+    }).catch((e) => console.error('Failed to save measurement to Neon PostgreSQL:', e));
+
+    showToast(language === 'ar' ? 'تم حفظ ملف القياسات المتقنة في قاعدة البيانات' : 'Measurement profile saved to database');
   };
 
   const addFabricRoll = (rollData: Omit<FabricRoll, 'id'>) => {
@@ -443,7 +566,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       )
     );
 
-    showToast(language === 'ar' ? `تم إنشاء طلب التفصيل رقم ${orderNumber}` : `Tailoring order ${orderNumber} created`);
+    fetch('/api/db/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...newOrder, tenantId: activeTenantId }),
+    }).catch((e) => console.error('Failed to save order to Neon PostgreSQL:', e));
+
+    showToast(language === 'ar' ? `تم إنشاء طلب التفصيل رقم ${orderNumber} وحفظه في قاعدة البيانات` : `Tailoring order ${orderNumber} created and saved to database`);
     return newOrder;
   };
 
@@ -451,6 +580,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTailoringOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status } : o))
     );
+
+    fetch(`/api/db/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    }).catch((e) => console.error('Failed to update order status in Neon PostgreSQL:', e));
+
     showToast(language === 'ar' ? `تم تحديث حالة الطلب إلى: ${status}` : `Order status updated to ${status}`);
   };
 
@@ -584,6 +720,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setExpenses((prev) => [newExp, ...prev]);
 
+    fetch('/api/db/expenses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...newExp, tenantId: activeTenantId }),
+    }).catch((e) => console.error('Failed to save expense in Neon PostgreSQL:', e));
+
     // Record an outgoing payment entry
     const newPayment: Payment = {
       id: generateUniqueId('pay_'),
@@ -624,6 +766,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeRole,
         setActiveRole,
         branches,
+
+        tenants,
+        activeTenantId,
+        activeTenant,
+        switchTenant,
+        addTenant,
+        updateTenant,
+        isNewTenantModalOpen,
+        setIsNewTenantModalOpen,
 
         isSearchOpen,
         setIsSearchOpen,

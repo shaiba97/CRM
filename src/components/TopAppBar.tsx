@@ -17,6 +17,8 @@ import {
   UserPlus,
   Scissors,
   FileText,
+  Building2,
+  CheckCircle2,
 } from 'lucide-react';
 import { Role } from '../types';
 
@@ -48,6 +50,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
     setGlobalSearchQuery,
     setActiveTab,
     formatNumber,
+    activeTenant,
   } = useApp();
 
   const [showBranchMenu, setShowBranchMenu] = useState(false);
@@ -81,6 +84,23 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
           mode="dark"
           onClick={() => setActiveTab('dashboard')}
         />
+
+        {/* Active Tailor Shop Account Identity Badge (Isolated Multi-Tenant Workspace) */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#2A1C14] to-[#3B291E] border border-[#C6A052]/30 text-xs text-[#F4F1EA] shadow">
+          <div className="w-5 h-5 rounded-md bg-[#C6A052]/20 border border-[#C6A052]/40 flex items-center justify-center text-[#C6A052]">
+            <Building2 className="w-3.5 h-3.5" />
+          </div>
+
+          <div className="flex flex-col text-right ltr:text-left">
+            <span className="font-bold text-[11px] text-[#F4F1EA] max-w-[150px] truncate leading-tight">
+              {language === 'ar' ? activeTenant?.nameAr : activeTenant?.nameEn}
+            </span>
+            <span className="text-[9px] text-[#A39B94] flex items-center gap-1">
+              <span className="text-[#C6A052] font-semibold">{activeTenant?.currencySymbol}</span>
+              <span>• {activeTenant?.ownerName}</span>
+            </span>
+          </div>
+        </div>
 
         {/* Branch Selector Dropdown */}
         <div className="relative">

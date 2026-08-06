@@ -6,6 +6,7 @@ import { CommandPaletteOverlay } from './components/CommandPaletteOverlay';
 import { ToastContainer } from './components/ToastContainer';
 import { NewTailoringOrderModal } from './components/modals/NewTailoringOrderModal';
 import { NewCustomerModal } from './components/modals/NewCustomerModal';
+import { NewTenantModal } from './components/NewTenantModal';
 
 // Views
 import { DashboardView } from './components/views/DashboardView';
@@ -113,6 +114,8 @@ const MainLayout: React.FC = () => {
         isOpen={isNewCustomerOpen}
         onClose={() => setIsNewCustomerOpen(false)}
       />
+
+      <NewTenantModal />
 
       <ToastContainer />
     </div>

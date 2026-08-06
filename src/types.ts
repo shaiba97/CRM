@@ -281,4 +281,26 @@ export interface Expense {
   recordedBy: string;
 }
 
+export interface TailorShopTenant {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  ownerName: string;
+  ownerEmail: string;
+  ownerPhone: string;
+  crNumber: string; // Commercial Registration / VAT Tax ID
+  taxRatePct: number;
+  currencySymbol: string; // e.g. 'ج.س', 'ر.س', 'د.إ', 'USD'
+  currencyCode: string;
+  logoUrl?: string;
+  addressAr: string;
+  addressEn: string;
+  subscriptionPlan: 'PRO_SAAS' | 'ENTERPRISE' | 'STARTER';
+  activeBranchesCount: number;
+  joinedDate: string;
+  primaryColorHex?: string;
+  receiptHeaderAr?: string;
+  receiptFooterAr?: string;
+}
+
 
