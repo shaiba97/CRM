@@ -74,7 +74,7 @@ export const DashboardView: React.FC = () => {
             </span>
           </div>
           <div className="flex items-center gap-3 mb-2">
-            <Logo variant="compact" size="md" mode="dark" />
+            <Logo variant="full" size="md" mode="dark" />
           </div>
           <h1 className="text-xl md:text-2xl font-bold text-[#F4F1EA]">
             {language === 'ar'

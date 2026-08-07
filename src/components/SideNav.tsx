@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
+import { Logo } from './Logo';
 import {
   LayoutDashboard,
   Users,
@@ -189,21 +190,20 @@ export const SideNav: React.FC = () => {
 
   return (
     <aside
-      className={`relative z-30 bg-[#36261C] border-l border-[#C6A052]/20 transition-all duration-300 flex flex-col justify-between select-none shrink-0 h-full overflow-hidden ${
+      className={`hidden md:flex relative z-30 bg-[#36261C] border-l border-[#C6A052]/20 transition-all duration-300 flex-col justify-between select-none shrink-0 h-full overflow-hidden ${
         sidebarExpanded ? 'w-64' : 'w-20'
       }`}
     >
-      {/* Top Toggle Pin */}
-      <div className="p-3 border-b border-[#C6A052]/10 flex items-center justify-between">
-        {sidebarExpanded && (
-          <span className="text-[11px] font-bold text-[#C6A052] uppercase tracking-wider flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5" />
-            {language === 'ar' ? 'القائمة الرئيسية' : 'NAVIGATION'}
-          </span>
+      {/* Top Brand Logo Header */}
+      <div className="p-3 border-b border-[#C6A052]/20 flex items-center justify-between gap-2">
+        {sidebarExpanded ? (
+          <Logo variant="full" size="sm" mode="dark" onClick={() => setActiveTab('dashboard')} />
+        ) : (
+          <Logo variant="icon" size="sm" mode="dark" onClick={() => setActiveTab('dashboard')} />
         )}
         <button
           onClick={() => setSidebarExpanded(!sidebarExpanded)}
-          className="p-1.5 rounded-lg bg-[#2A1C14] border border-[#C6A052]/20 text-[#C6A052] hover:bg-[#422F23] transition-colors mx-auto"
+          className="p-1.5 rounded-lg bg-[#2A1C14] border border-[#C6A052]/20 text-[#C6A052] hover:bg-[#422F23] transition-colors shrink-0"
           title={sidebarExpanded ? 'طي القائمة' : 'توسيع القائمة'}
         >
           {sidebarExpanded ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { TopAppBar } from './components/TopAppBar';
 import { SideNav } from './components/SideNav';
+import { MobileNavigation } from './components/MobileNavigation';
 import { CommandPaletteOverlay } from './components/CommandPaletteOverlay';
 import { ToastContainer } from './components/ToastContainer';
 import { NewTailoringOrderModal } from './components/modals/NewTailoringOrderModal';
@@ -92,12 +93,15 @@ const MainLayout: React.FC = () => {
         <SideNav />
 
         {/* Workspace Canvas */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gradient-to-b from-[#2A1C14] via-[#241710] to-[#1E130D]">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 pb-20 md:pb-8 bg-gradient-to-b from-[#2A1C14] via-[#241710] to-[#1E130D]">
           <div className="max-w-7xl mx-auto">
             {renderActiveView()}
           </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Bar & Slide-over Drawer */}
+      <MobileNavigation />
 
       {/* Overlays & Modals */}
       <CommandPaletteOverlay

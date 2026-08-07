@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { Logo } from './Logo';
 import { X, Building2, ShieldCheck, Sparkles, Plus, CreditCard, DollarSign } from 'lucide-react';
 
 export const NewTenantModal: React.FC = () => {
@@ -60,15 +61,13 @@ export const NewTenantModal: React.FC = () => {
       <div className="relative w-full max-w-2xl bg-[#36261C] border border-[#C6A052]/40 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
         <div className="p-5 bg-[#2A1C14] border-b border-[#C6A052]/20 flex justify-between items-center">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#C6A052]/20 border border-[#C6A052]/40 flex items-center justify-center text-[#C6A052]">
-              <Building2 className="w-5 h-5" />
-            </div>
+          <div className="flex items-center gap-3">
+            <Logo variant="full" size="sm" mode="dark" />
             <div>
               <h2 className="text-base font-extrabold text-[#F4F1EA] flex items-center gap-2">
                 <span>
                   {language === 'ar'
-                    ? 'تسجيل وإضافة دار خياطة جديدة (New Tailor Shop Enterprise)'
+                    ? 'تسجيل وإضافة دار خياطة جديدة'
                     : 'Register New Tailor Shop Enterprise'}
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">
@@ -77,8 +76,8 @@ export const NewTenantModal: React.FC = () => {
               </h2>
               <p className="text-[11px] text-[#A39B94]">
                 {language === 'ar'
-                  ? 'إنشاء مساحة عمل مستقلة بالكامل لدار خياطة أو مشغل مع تخصيص العملة، الضريبة، والبيانات'
-                  : 'Create an isolated cloud workspace with custom currency, VAT, and branch config.'}
+                  ? 'إنشاء مساحة عمل مستقلة بالكامل لدار خياطة مع تخصيص العملة والضريبة تحت مظلة نظام كوفادو'
+                  : 'Create an isolated cloud workspace with custom currency, VAT, and branch config under Kofado.'}
               </p>
             </div>
           </div>

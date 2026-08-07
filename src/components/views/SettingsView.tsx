@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { Logo } from '../Logo';
 import {
   Sliders,
   Languages,
@@ -310,8 +311,24 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Col: Registered Shops List & Switcher */}
+        {/* Right Col: Registered Shops List & Official Logo Preview */}
         <div className="space-y-4">
+          {/* Brand Logo Identity Card */}
+          <div className="p-5 rounded-2xl bg-[#36261C] border border-[#C6A052]/30 shadow space-y-3">
+            <h2 className="font-bold text-xs text-[#C6A052] uppercase tracking-wider flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#C6A052]" />
+              <span>{language === 'ar' ? 'شعار العلامة التجارية الرسمي (Kofado Brand)' : 'Official Brand Logo'}</span>
+            </h2>
+            <div className="p-3 bg-[#2A1C14] rounded-xl border border-[#C6A052]/20 flex flex-col items-center justify-center gap-2">
+              <Logo variant="full" size="xl" mode="dark" />
+              <p className="text-[10px] text-[#A39B94] text-center mt-1">
+                {language === 'ar'
+                  ? 'الشعار الرسمي المعتمد في الفواتير المطبوعة، الهيدر العلوي، ونوافل الفواتير الإلكترونية.'
+                  : 'Official luxury brand logo used across headers, printed receipts, and POS slips.'}
+              </p>
+            </div>
+          </div>
+
           <div className="p-5 rounded-2xl bg-[#36261C] border border-[#C6A052]/20 shadow space-y-4">
             <div className="flex items-center justify-between border-b border-[#C6A052]/20 pb-2">
               <h2 className="font-bold text-sm text-[#F4F1EA] flex items-center gap-2">

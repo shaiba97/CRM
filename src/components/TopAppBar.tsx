@@ -19,6 +19,7 @@ import {
   FileText,
   Building2,
   CheckCircle2,
+  Menu,
 } from 'lucide-react';
 import { Role } from '../types';
 
@@ -51,6 +52,8 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
     setActiveTab,
     formatNumber,
     activeTenant,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
   } = useApp();
 
   const [showBranchMenu, setShowBranchMenu] = useState(false);
@@ -74,19 +77,28 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-[#36261C] border-b border-[#C6A052]/20 px-4 flex items-center justify-between text-[#F4F1EA]">
-      {/* Right side in RTL / Left side in LTR: Logo & Branch Selector */}
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-40 h-16 bg-[#36261C] border-b border-[#C6A052]/20 px-3 sm:px-4 flex items-center justify-between text-[#F4F1EA]">
+      {/* Right side in RTL / Left side in LTR: Mobile Toggle, Logo & Branch Selector */}
+      <div className="flex items-center gap-2 sm:gap-4">
+        {/* Mobile Hamburger Drawer Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden p-2 rounded-xl bg-[#2A1C14] border border-[#C6A052]/30 text-[#C6A052] hover:bg-[#422F23] transition-colors"
+          title={language === 'ar' ? 'فتح القائمة الرئيسية' : 'Open Navigation Menu'}
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         {/* Logo */}
         <Logo
           variant="full"
-          size="md"
+          size="sm"
           mode="dark"
           onClick={() => setActiveTab('dashboard')}
         />
 
         {/* Active Tailor Shop Account Identity Badge (Isolated Multi-Tenant Workspace) */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#2A1C14] to-[#3B291E] border border-[#C6A052]/30 text-xs text-[#F4F1EA] shadow">
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#2A1C14] to-[#3B291E] border border-[#C6A052]/30 text-xs text-[#F4F1EA] shadow">
           <div className="w-5 h-5 rounded-md bg-[#C6A052]/20 border border-[#C6A052]/40 flex items-center justify-center text-[#C6A052]">
             <Building2 className="w-3.5 h-3.5" />
           </div>
@@ -103,7 +115,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
         </div>
 
         {/* Branch Selector Dropdown */}
-        <div className="relative">
+        <div className="relative hidden sm:block">
           <button
             onClick={() => setShowBranchMenu(!showBranchMenu)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2A1C14]/80 border border-[#C6A052]/20 hover:border-[#C6A052]/50 text-xs text-[#F4F1EA] transition-all"
@@ -111,7 +123,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
           >
             <Store className="w-3.5 h-3.5 text-[#C6A052]" />
             <span className="font-medium max-w-[120px] truncate">
-              {language === 'ar' ? activeBranch.nameAr : activeBranch.nameEn}
+              {language === 'ar' ? (activeBranch?.nameAr || 'الفرع الرئيسي') : (activeBranch?.nameEn || 'Main Branch')}
             </span>
             <ChevronDown className="w-3 h-3 text-[#A39B94]" />
           </button>

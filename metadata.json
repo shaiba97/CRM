@@ -1,6 +1,6 @@
 {
-  "name": "Moussa CRM - Tailoring & Fabric CRM System",
-  "description": "Enterprise CRM and ERP system for tailoring and fabric shops with email tracking, automated AI lead scoring, inventory, POS, and production management.",
+  "name": "كوفادو Kofado - Tailoring & Fabric Management System",
+  "description": "Enterprise CRM & ERP system for tailoring and fabric shops with official Kofado branding, email tracking, AI lead scoring, inventory, POS, and production management.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

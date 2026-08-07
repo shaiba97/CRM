@@ -82,6 +82,10 @@ interface AppContextType {
   globalSearchQuery: string;
   setGlobalSearchQuery: (q: string) => void;
 
+  // Mobile drawer state
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (open: boolean) => void;
+
   // Navigation
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -170,6 +174,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState<string>('');
@@ -785,6 +790,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveTab,
         sidebarExpanded,
         setSidebarExpanded,
+        isMobileMenuOpen,
+        setIsMobileMenuOpen,
 
         toasts,
         showToast,

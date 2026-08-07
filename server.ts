@@ -13,12 +13,35 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Attempt Neon PostgreSQL schema initialization
-  initializeDatabaseSchema().then((res) => {
-    if (res.success) {
-      console.log("Connected to Neon PostgreSQL database: ep-super-lab-az4auhbi-pooler.c-3.ap-southeast-1.aws.neon.tech");
+  // Helper function for safe db queries
+  const safeQuery = async (db: any, sql: string) => {
+    try {
+      return await db.query(sql);
+    } catch (err: any) {
+      if (err?.message?.includes("does not exist")) {
+        console.warn(`Table missing during query '${sql}'. Initializing schema...`);
+        await initializeDatabaseSchema();
+        try {
+          return await db.query(sql);
+        } catch (retryErr) {
+          console.error(`Retry query failed for '${sql}':`, retryErr);
+          return { rows: [] };
+        }
+      }
+      console.error(`Query error for '${sql}':`, err);
+      return { rows: [] };
     }
-  });
+  };
+
+  // Attempt Neon PostgreSQL schema initialization
+  try {
+    const res = await initializeDatabaseSchema();
+    if (res.success) {
+      console.log("Connected to Neon PostgreSQL database & schema verified.");
+    }
+  } catch (initErr) {
+    console.error("Database schema init error on startup:", initErr);
+  }
 
   // Shared Gemini client
   const getGeminiClient = () => {
@@ -82,24 +105,24 @@ async function startServer() {
         auditLogsRes,
         expensesRes,
       ] = await Promise.all([
-        db.query("SELECT * FROM tenants ORDER BY created_at DESC"),
-        db.query("SELECT * FROM branches"),
-        db.query("SELECT * FROM customers ORDER BY created_at DESC"),
-        db.query("SELECT * FROM email_logs ORDER BY sent_at DESC"),
-        db.query("SELECT * FROM measurements"),
-        db.query("SELECT * FROM suppliers"),
-        db.query("SELECT * FROM fabric_rolls"),
-        db.query("SELECT * FROM products"),
-        db.query("SELECT * FROM orders ORDER BY created_at DESC"),
-        db.query("SELECT * FROM production_tasks"),
-        db.query("SELECT * FROM invoices ORDER BY created_at DESC"),
-        db.query("SELECT * FROM payments ORDER BY date DESC"),
-        db.query("SELECT * FROM purchase_orders ORDER BY created_at DESC"),
-        db.query("SELECT * FROM employees"),
-        db.query("SELECT * FROM notifications ORDER BY created_at DESC"),
-        db.query("SELECT * FROM user_tasks"),
-        db.query("SELECT * FROM audit_logs ORDER BY timestamp DESC"),
-        db.query("SELECT * FROM expenses ORDER BY date DESC"),
+        safeQuery(db, "SELECT * FROM tenants ORDER BY created_at DESC"),
+        safeQuery(db, "SELECT * FROM branches"),
+        safeQuery(db, "SELECT * FROM customers ORDER BY created_at DESC"),
+        safeQuery(db, "SELECT * FROM email_logs ORDER BY sent_at DESC"),
+        safeQuery(db, "SELECT * FROM measurements"),
+        safeQuery(db, "SELECT * FROM suppliers"),
+        safeQuery(db, "SELECT * FROM fabric_rolls"),
+        safeQuery(db, "SELECT * FROM products"),
+        safeQuery(db, "SELECT * FROM orders ORDER BY created_at DESC"),
+        safeQuery(db, "SELECT * FROM production_tasks"),
+        safeQuery(db, "SELECT * FROM invoices ORDER BY created_at DESC"),
+        safeQuery(db, "SELECT * FROM payments ORDER BY date DESC"),
+        safeQuery(db, "SELECT * FROM purchase_orders ORDER BY created_at DESC"),
+        safeQuery(db, "SELECT * FROM employees"),
+        safeQuery(db, "SELECT * FROM notifications ORDER BY created_at DESC"),
+        safeQuery(db, "SELECT * FROM user_tasks"),
+        safeQuery(db, "SELECT * FROM audit_logs ORDER BY timestamp DESC"),
+        safeQuery(db, "SELECT * FROM expenses ORDER BY date DESC"),
       ]);
 
       const tenants = tenantsRes.rows.map((r) => ({
