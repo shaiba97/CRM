@@ -33,6 +33,9 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   onOpenQuickNewCustomer,
 }) => {
   const {
+    currentUser,
+    logout,
+    setIsLoginModalOpen,
     language,
     setLanguage,
     numeralStyle,
@@ -415,21 +418,58 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
           )}
         </div>
 
-        {/* User Profile Avatar */}
+        {/* User Profile Avatar & Auth Menu */}
         <div className="relative">
           <div
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#C6A052] to-[#422F23] border border-[#C6A052] flex items-center justify-center cursor-pointer shadow hover:scale-105 transition-transform"
+            className="flex items-center gap-2 p-1 pr-2 rounded-full bg-[#2A1C14] border border-[#C6A052]/40 cursor-pointer shadow hover:scale-105 transition-all"
+            title={language === 'ar' ? 'حساب المستخدم والجلسة' : 'User Session'}
           >
-            <span className="font-bold text-xs text-[#2A1C14]">محمود</span>
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#C6A052] to-[#B59042] text-[#2A1C14] font-black flex items-center justify-center text-xs shadow">
+              {currentUser ? currentUser.name.charAt(0) : 'U'}
+            </div>
+            <span className="hidden sm:inline font-bold text-xs text-[#F4F1EA] max-w-[100px] truncate">
+              {currentUser ? currentUser.name : (language === 'ar' ? 'مستخدم' : 'User')}
+            </span>
+            <ChevronDown className="w-3 h-3 text-[#C6A052] shrink-0" />
           </div>
 
           {showUserMenu && (
-            <div className="absolute left-0 mt-2 w-48 bg-[#36261C] border border-[#C6A052]/30 rounded-xl shadow-2xl py-2 z-50 text-xs">
-              <div className="px-3 py-2 border-b border-[#C6A052]/10">
-                <p className="font-bold text-[#F4F1EA]">محمود موسى العطاء</p>
-                <p className="text-[10px] text-[#C6A052] uppercase font-mono">{activeRole}</p>
+            <div className="absolute left-0 mt-2 w-56 bg-[#36261C] border border-[#C6A052]/30 rounded-xl shadow-2xl py-2 z-50 text-xs">
+              <div className="px-3 py-2 border-b border-[#C6A052]/10 space-y-0.5">
+                <p className="font-bold text-[#F4F1EA] truncate">{currentUser?.name || 'Guest User'}</p>
+                <p className="text-[10px] text-[#A39B94] truncate">{currentUser?.email || 'guest@kofado.com'}</p>
+                <span className="inline-block px-2 py-0.5 mt-1 rounded text-[9px] font-bold bg-[#C6A052]/20 text-[#C6A052] border border-[#C6A052]/30 uppercase">
+                  {currentUser?.role || activeRole}
+                </span>
               </div>
+
+              {/* Manage Users option for OWNER */}
+              {(activeRole === 'OWNER' || currentUser?.role === 'OWNER') && (
+                <button
+                  onClick={() => {
+                    setActiveTab('employees');
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full text-right px-3 py-2 text-[#C6A052] hover:bg-[#422F23] flex items-center gap-2 font-bold"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  {language === 'ar' ? 'إدارة حسابات المستخدمين (CRUD)' : 'Manage System Users'}
+                </button>
+              )}
+
+              {/* Open Login / Switch User Modal */}
+              <button
+                onClick={() => {
+                  setIsLoginModalOpen(true);
+                  setShowUserMenu(false);
+                }}
+                className="w-full text-right px-3 py-2 text-[#F4F1EA] hover:bg-[#422F23] flex items-center gap-2 border-t border-[#C6A052]/10"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#C6A052]" />
+                {language === 'ar' ? 'تبديل الحساب / تسجيل دخول كـ' : 'Switch User / Login As...'}
+              </button>
+
               <button
                 onClick={() => {
                   setActiveTab('settings');
@@ -440,15 +480,16 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
                 <Sliders className="w-3.5 h-3.5 text-[#C6A052]" />
                 {language === 'ar' ? 'إعدادات النظام والبريد' : 'System Settings'}
               </button>
+
               <button
                 onClick={() => {
-                  alert(language === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out');
                   setShowUserMenu(false);
+                  logout();
                 }}
-                className="w-full text-right px-3 py-2 text-red-400 hover:bg-[#422F23] flex items-center gap-2 border-t border-[#C6A052]/10"
+                className="w-full text-right px-3 py-2 text-rose-400 hover:bg-[#422F23] flex items-center gap-2 border-t border-[#C6A052]/10"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                {language === 'ar' ? 'تسجيل الخروج' : 'Logout'}
+                {language === 'ar' ? 'تسجيل الخروج النهائي' : 'Sign Out'}
               </button>
             </div>
           )}

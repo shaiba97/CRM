@@ -17,6 +17,7 @@ import {
   AuditLog,
   Expense,
   TailorShopTenant,
+  User,
 } from '../types';
 
 export const INITIAL_BRANCHES: Branch[] = [
@@ -913,5 +914,86 @@ export const INITIAL_TENANTS: TailorShopTenant[] = [
     receiptFooterAr: 'Thank you for choosing Royal Tailors Dubai',
   },
 ];
+
+export const INITIAL_USERS: User[] = [
+  {
+    id: 'usr_owner_1',
+    name: 'محمود موسى العطاء',
+    email: 'owner@kofado.com',
+    password: 'owner123',
+    role: 'OWNER',
+    branchId: 'b1',
+    phone: '+249 91 000 0001',
+    status: 'ACTIVE',
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'usr_manager_1',
+    name: 'طارق عبد المحسن',
+    email: 'manager@kofado.com',
+    password: 'manager123',
+    role: 'MANAGER',
+    branchId: 'b1',
+    phone: '+249 92 444 9900',
+    status: 'ACTIVE',
+    createdAt: '2026-01-10',
+  },
+  {
+    id: 'usr_cashier_1',
+    name: 'فاطمة النور',
+    email: 'cashier@kofado.com',
+    password: 'cashier123',
+    role: 'CASHIER',
+    branchId: 'b1',
+    phone: '+249 91 333 7788',
+    status: 'ACTIVE',
+    createdAt: '2026-02-01',
+  },
+  {
+    id: 'usr_tailor_1',
+    name: 'أحمد خياط (خياط وأستايلست)',
+    email: 'tailor@kofado.com',
+    password: 'tailor123',
+    role: 'TAILOR',
+    branchId: 'b1',
+    phone: '+249 92 111 3344',
+    status: 'ACTIVE',
+    createdAt: '2026-02-15',
+  },
+  {
+    id: 'usr_sales_1',
+    name: 'سارة عبد الله (مسؤولة المبيعات)',
+    email: 'sales@kofado.com',
+    password: 'sales123',
+    role: 'SALES',
+    branchId: 'b1',
+    phone: '+249 91 555 6677',
+    status: 'ACTIVE',
+    createdAt: '2026-03-01',
+  },
+  {
+    id: 'usr_warehouse_1',
+    name: 'خالد عبد الله (أمينات المستودع)',
+    email: 'warehouse@kofado.com',
+    password: 'warehouse123',
+    role: 'WAREHOUSE',
+    branchId: 'b1',
+    phone: '+249 90 888 1122',
+    status: 'ACTIVE',
+    createdAt: '2026-03-10',
+  },
+  {
+    id: 'usr_accountant_1',
+    name: 'عمر المالي (محاسب رئيسي)',
+    email: 'accountant@kofado.com',
+    password: 'accountant123',
+    role: 'ACCOUNTANT',
+    branchId: 'b1',
+    phone: '+249 92 999 0011',
+    status: 'ACTIVE',
+    createdAt: '2026-03-20',
+  },
+];
+
 
 

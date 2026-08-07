@@ -8,6 +8,7 @@ import { ToastContainer } from './components/ToastContainer';
 import { NewTailoringOrderModal } from './components/modals/NewTailoringOrderModal';
 import { NewCustomerModal } from './components/modals/NewCustomerModal';
 import { NewTenantModal } from './components/NewTenantModal';
+import { LoginModal } from './components/auth/LoginModal';
 
 // Views
 import { DashboardView } from './components/views/DashboardView';
@@ -120,6 +121,8 @@ const MainLayout: React.FC = () => {
       />
 
       <NewTenantModal />
+
+      <LoginModal />
 
       <ToastContainer />
     </div>

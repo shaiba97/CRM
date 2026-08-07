@@ -21,6 +21,7 @@ import {
   AuditLog,
   Expense,
   TailorShopTenant,
+  User,
 } from '../types';
 import {
   INITIAL_BRANCHES,
@@ -41,6 +42,7 @@ import {
   INITIAL_AUDIT_LOGS,
   INITIAL_EXPENSES,
   INITIAL_TENANTS,
+  INITIAL_USERS,
 } from '../data/mockData';
 
 interface Toast {
@@ -50,6 +52,17 @@ interface Toast {
 }
 
 interface AppContextType {
+  // Authentication & Users State
+  currentUser: User | null;
+  users: User[];
+  isLoginModalOpen: boolean;
+  setIsLoginModalOpen: (open: boolean) => void;
+  login: (email: string, pass: string) => { success: boolean; error?: string };
+  logout: () => void;
+  addUser: (userData: Omit<User, 'id' | 'createdAt'>) => { user: User | null; error?: string };
+  updateUser: (id: string, updates: Partial<User>) => void;
+  deleteUser: (id: string) => { success: boolean; error?: string };
+
   // Config & Shell State
   language: 'ar' | 'en';
   setLanguage: (lang: 'ar' | 'en') => void;
@@ -171,6 +184,227 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [activeBranchId, setActiveBranchId] = useState<string>('b1');
   const [activeRole, setActiveRole] = useState<Role>('OWNER');
+
+  // Users & Auth State
+  const [users, setUsers] = useState<User[]>(() => {
+    try {
+      const saved = localStorage.getItem('kofado_users');
+      return saved ? JSON.parse(saved) : INITIAL_USERS;
+    } catch {
+      return INITIAL_USERS;
+    }
+  });
+
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('kofado_current_user');
+      return saved ? JSON.parse(saved) : INITIAL_USERS[0];
+    } catch {
+      return INITIAL_USERS[0];
+    }
+  });
+
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+
+  // Sync activeRole whenever currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      setActiveRole(currentUser.role);
+    }
+  }, [currentUser]);
+
+  // Persist users and currentUser
+  useEffect(() => {
+    try {
+      localStorage.setItem('kofado_users', JSON.stringify(users));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [users]);
+
+  useEffect(() => {
+    try {
+      if (currentUser) {
+        localStorage.setItem('kofado_current_user', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('kofado_current_user');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [currentUser]);
+
+  // Auth & User Management Functions
+  const login = (email: string, pass: string) => {
+    const found = users.find(
+      (u) => u.email.trim().toLowerCase() === email.trim().toLowerCase()
+    );
+
+    if (!found) {
+      return { success: false, error: language === 'ar' ? 'البريد الإلكتروني غير مسجل بالشفرة' : 'Email address not found' };
+    }
+
+    if (found.status === 'INACTIVE') {
+      return { success: false, error: language === 'ar' ? 'هذا الحساب معطل حالياً من قبل الإدارة' : 'Account is currently suspended' };
+    }
+
+    if (found.password && found.password !== pass.trim()) {
+      return { success: false, error: language === 'ar' ? 'كلمة المرور غير صحيحة' : 'Invalid password' };
+    }
+
+    const updatedUser: User = {
+      ...found,
+      lastLoginAt: new Date().toISOString(),
+    };
+
+    setCurrentUser(updatedUser);
+    setActiveRole(updatedUser.role);
+    setIsLoginModalOpen(false);
+
+    // Update lastLoginAt in users list
+    setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+
+    showToast(
+      language === 'ar'
+        ? `أهلاً بك مجدداً ${updatedUser.name} (${updatedUser.role})`
+        : `Welcome back, ${updatedUser.name} (${updatedUser.role})`,
+      'success'
+    );
+
+    return { success: true };
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    setIsLoginModalOpen(true);
+    showToast(language === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully', 'info');
+  };
+
+  const addUser = (userData: Omit<User, 'id' | 'createdAt'>) => {
+    if (activeRole !== 'OWNER' && currentUser?.role !== 'OWNER') {
+      showToast(language === 'ar' ? 'عفواً، إضافة المستخدمين محصورة لصلاحية المالك فقط' : 'Only Owner can add users', 'error');
+      return { user: null, error: 'Unauthorized' };
+    }
+
+    const exists = users.some((u) => u.email.trim().toLowerCase() === userData.email.trim().toLowerCase());
+    if (exists) {
+      const errStr = language === 'ar' ? 'البريد الإلكتروني مستخدم بالفعل لمستخدم آخر' : 'Email is already registered';
+      showToast(errStr, 'error');
+      return { user: null, error: errStr };
+    }
+
+    const newUser: User = {
+      ...userData,
+      id: `usr_${Date.now()}`,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    setUsers((prev) => [newUser, ...prev]);
+
+    // Also add to employees if relevant
+    const newEmp: Employee = {
+      id: newUser.id,
+      name: newUser.name,
+      role: newUser.role,
+      phone: newUser.phone,
+      email: newUser.email,
+      branchId: newUser.branchId || 'b1',
+      attendanceRate: 100,
+      monthlyCommission: 0,
+      assignedTasksCount: 0,
+      status: newUser.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+    };
+    setEmployees((prev) => [newEmp, ...prev]);
+
+    // Log in Audit Logs
+    const newLog: AuditLog = {
+      id: `al_${Date.now()}`,
+      action: `إنشاء حساب مستخدم جديد (${newUser.role}): ${newUser.name}`,
+      userName: currentUser ? currentUser.name : 'المالك',
+      userRole: activeRole,
+      timestamp: new Date().toLocaleString(),
+      details: `البريد: ${newUser.email} | الفرع: ${newUser.branchId}`,
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+
+    showToast(
+      language === 'ar' ? `تم إنشاء حساب ${newUser.name} بدور (${newUser.role})` : `User ${newUser.name} created successfully`,
+      'success'
+    );
+
+    return { user: newUser };
+  };
+
+  const updateUser = (id: string, updates: Partial<User>) => {
+    setUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === id) {
+          const updated = { ...u, ...updates };
+          if (currentUser?.id === id) {
+            setCurrentUser(updated);
+          }
+          return updated;
+        }
+        return u;
+      })
+    );
+
+    // Update employees list if name/role/phone/email changed
+    setEmployees((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...updates } : e))
+    );
+
+    const target = users.find((u) => u.id === id);
+    const newLog: AuditLog = {
+      id: `al_${Date.now()}`,
+      action: `تعديل بيانات المستخدم: ${target?.name || id}`,
+      userName: currentUser ? currentUser.name : 'المالك',
+      userRole: activeRole,
+      timestamp: new Date().toLocaleString(),
+      details: JSON.stringify(updates),
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+
+    showToast(language === 'ar' ? 'تم تحديث بيانات المستخدم بنجاح' : 'User updated successfully', 'success');
+  };
+
+  const deleteUser = (id: string) => {
+    if (activeRole !== 'OWNER' && currentUser?.role !== 'OWNER') {
+      showToast(language === 'ar' ? 'عفواً، حذف المستخدمين محصور لصلاحية المالك فقط' : 'Only Owner can delete users', 'error');
+      return { success: false, error: 'Unauthorized' };
+    }
+
+    if (currentUser?.id === id) {
+      const errStr = language === 'ar' ? 'لا يمكنك حذف حسابك الشخصي النشط حالياً' : 'Cannot delete your own active account';
+      showToast(errStr, 'error');
+      return { success: false, error: errStr };
+    }
+
+    const targetUser = users.find((u) => u.id === id);
+    if (targetUser?.role === 'OWNER') {
+      const ownerCount = users.filter((u) => u.role === 'OWNER').length;
+      if (ownerCount <= 1) {
+        const errStr = language === 'ar' ? 'لا يمكن حذف المالك الوحيد للنظام' : 'Cannot delete the only Owner account';
+        showToast(errStr, 'error');
+        return { success: false, error: errStr };
+      }
+    }
+
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+    setEmployees((prev) => prev.filter((e) => e.id !== id));
+
+    const newLog: AuditLog = {
+      id: `al_${Date.now()}`,
+      action: `حذف حساب المستخدم: ${targetUser?.name || id}`,
+      userName: currentUser ? currentUser.name : 'المالك',
+      userRole: activeRole,
+      timestamp: new Date().toLocaleString(),
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+
+    showToast(language === 'ar' ? 'تم حذف حساب المستخدم بشكل نهائي' : 'User deleted successfully', 'success');
+    return { success: true };
+  };
 
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(true);
@@ -757,6 +991,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <AppContext.Provider
       value={{
+        currentUser,
+        users,
+        isLoginModalOpen,
+        setIsLoginModalOpen,
+        login,
+        logout,
+        addUser,
+        updateUser,
+        deleteUser,
+
         language,
         setLanguage,
         dir,

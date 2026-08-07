@@ -281,6 +281,20 @@ export interface Expense {
   recordedBy: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  role: Role;
+  branchId: string;
+  phone: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  avatarUrl?: string;
+  createdAt: string;
+  lastLoginAt?: string;
+}
+
 export interface TailorShopTenant {
   id: string;
   nameAr: string;
