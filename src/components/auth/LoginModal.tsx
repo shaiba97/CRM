@@ -16,6 +16,7 @@ import {
   KeyRound,
   CheckCircle2,
   AlertCircle,
+  Crown,
 } from 'lucide-react';
 import { Role } from '../../types';
 
@@ -173,6 +174,32 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
           )}
+
+          {/* Major Admin Default Credentials Badge & Notice */}
+          <div className="p-3 rounded-xl bg-[#C6A052]/10 border border-[#C6A052]/30 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-[#C6A052] flex items-center gap-1.5">
+                <Crown className="w-4 h-4 text-[#C6A052]" />
+                <span>{language === 'ar' ? 'حساب المسؤول الرئيسي المعتمد (Major Admin)' : 'Registered Major Admin'}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('owner@kofado.com', 'owner123')}
+                className="px-2.5 py-1 rounded-lg bg-[#C6A052] text-[#2A1C14] text-[10px] font-extrabold hover:bg-[#B59042] transition-colors shadow"
+              >
+                {language === 'ar' ? 'دخول نقرة واحدة' : '1-Click Login'}
+              </button>
+            </div>
+            <div className="text-[11px] font-mono text-[#F4F1EA] flex flex-wrap gap-x-4 gap-y-1">
+              <span>{language === 'ar' ? 'البريد:' : 'Email:'} <strong className="text-[#C6A052]">owner@kofado.com</strong></span>
+              <span>{language === 'ar' ? 'كلمة السر:' : 'Pass:'} <strong className="text-[#C6A052]">owner123</strong></span>
+            </div>
+            <p className="text-[10px] text-[#A39B94] border-t border-[#C6A052]/20 pt-1.5">
+              {language === 'ar'
+                ? 'ملاحظة: لا يتوفر تسجيل حساب جديد للعموم. إدارة وإضافة المستخدمين محصورة للمسؤول الرئيسي من داخل النظام.'
+                : 'Notice: Public signup is disabled. Account creation is restricted to the Major Admin.'}
+            </p>
+          </div>
 
           {/* Standard Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -31,7 +31,17 @@ import { AdminView } from './components/views/AdminView';
 import { SettingsView } from './components/views/SettingsView';
 
 const MainLayout: React.FC = () => {
-  const { activeTab, activeRole } = useApp();
+  const { activeTab, activeRole, currentUser } = useApp();
+
+  // If unauthenticated / logged out, render full-screen login page
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-[#2A1C14] text-[#F4F1EA] flex items-center justify-center font-sans antialiased">
+        <LoginModal isOpen={true} />
+        <ToastContainer />
+      </div>
+    );
+  }
 
   // Modals state
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
